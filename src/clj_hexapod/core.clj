@@ -10,7 +10,7 @@
 
 
 (checksum [128 128 128 128])
-(checksum [128 128 140 20])
+(checksum [128 128 120 128])
 
 
 (defn vec->bytes [v]
@@ -18,6 +18,7 @@
 
 
 (serial/write port (vec->bytes [255 128 128 140 20 0 0 95]))
+(serial/write port (vec->bytes [255 128 128 120 128 0 0 7]))
 (serial/write port (vec->bytes [255 128 128 128 128 0 0 255]))
 
 (serial/close port)
