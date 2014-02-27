@@ -9,6 +9,8 @@ You can control it via XBee and
 [UartSBEE](http://www.trossenrobotics.com/uartsbee) connected to your
 computers USB port.
 
+Here is a [video](http://www.youtube.com/watch?v=pUrZeJ39xjs) of the PhantomX in action
+
 ## License
 
 Copyright © 2014 Carin Meier
