@@ -3,19 +3,22 @@
 
 (def CENTER 128)
 
+(def gaits {:ripple-smooth 8
+            :amble-smooth 16
+            :ripple 324
+            :amble 1
+            :tripod-normal 2
+            :tripod-high-speed 4})
 
+;; Use this command to see what port your serial port
+;; is assinged to
 (serial/list-ports)
 
+;; replace the USB0 with whater it shows
 (def port (serial/open "/dev/ttyUSB0" 38400))
 
 (defn checksum [v]
   (mod (- 255 (reduce + v)) 256))
-
-
-(checksum [128 128 128 128])
-(checksum [128 128 120 128])
-(checksum [128 128 2 2])
-
 
 (defn vec->bytes [v]
   (byte-array (map #(-> % (Integer.) (.byteValue) (byte)) v)))
@@ -63,14 +66,6 @@
 ;;Right Vertical always 128
 ;;middle at 128
 
-;; R3 Ripple Smooth Gait - 8
-;; R2 Amble Smooth Gait - 16
-;; R1 Ripple Gait - 324
-
-;; L6 Amble Gait  - 1
-;; L5 Tripod Gait - Normal - 2
-;; L4 Tripod Gait - High Speed - 4
-
 
 (defn walk-forward [speed]
   "walk forward speed between 1-100"
@@ -96,27 +91,29 @@
   "turn left speed between 1-100"
   (send (build-packet CENTER (down speed) CENTER CENTER 0)))
 
+(defn change-gait [gait-key]
+  (let [gait-num (gait-key gaits)]
+    (send (build-packet CENTER CENTER CENTER CENTER gait-num))))
+
 (defn stop []
   "stop hexapod"
   (send (build-packet CENTER CENTER CENTER CENTER 0)))
 
-(walk-forward 10)
+(defn good-bye []
+  (serial/close port))
+
+
+(walk-forward 20)
 (walk-backwards 10)
 (walk-right 10)
 (walk-left 10)
 (turn-right 10)
 (turn-left 10)
-(stop) 
+(change-gait :ripple-smooth)
+(change-gait :tripod-normal)
+(change-gait :ripple)
+(change-gait :amble)
+(stop)
 
-
-
-;;walk right
-  
-(serial/write port (vec->bytes [255 128 128 140 20 0 0 95]))
-(serial/write port (vec->bytes [255 128 128 120 128 0 0 7]))
-(serial/write port (vec->bytes [255 128 128 2 128 0 0 7]))
-(serial/write port (vec->bytes [255 128 128 128 128 0 0 255]))
-
-(serial/close port)
-
+(good-bye)
 
