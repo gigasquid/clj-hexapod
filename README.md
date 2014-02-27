@@ -1,6 +1,8 @@
 # clj-hexapod
 
-This a control library for the
+Yes - Hexapods need to use Clojure!
+
+This is a control libray for the 
 [PhantomX Hexapod](http://www.trossenrobotics.com/phantomx-ax-hexapod.aspx).
 
 You can control it via XBee and
