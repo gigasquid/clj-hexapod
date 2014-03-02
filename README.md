@@ -5,6 +5,8 @@ Yes - Hexapods need to use Clojure!
 This is a control libray for the 
 [PhantomX Hexapod](http://www.trossenrobotics.com/phantomx-ax-hexapod.aspx).
 
+The firmware for the hexapod is [here](https://github.com/trossenrobotics/HexapodMKIICommander)
+
 You can control it via XBee and
 [UartSBEE](http://www.trossenrobotics.com/uartsbee) connected to your
 computers USB port.
