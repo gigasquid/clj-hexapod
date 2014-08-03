@@ -14,6 +14,12 @@
 (declare port)
 
 
+(def modes {0 :walk-mode
+            1 :translate-mode
+            2 :rotate-mode
+            3 :single-leg-mode})
+(def current-mode (atom 0))
+
 (defn checksum [v]
   (mod (- 255 (reduce + v)) 256))
 
@@ -83,6 +89,29 @@
   "raise up to a walking height"
   (add-command (build-packet CENTER CENTER CENTER CENTER L5-button)))
 
+(defn change-mode [mode-value]
+  "Change modes (left-top-button) until we reach the mode-value
+     {0 :walk-mode 1 :translate-mode 2 :rotate-mode 3 :single-leg-mode}"
+  (when-not (= mode-value (get modes @current-mode))
+    (add-command (build-packet CENTER CENTER CENTER CENTER LT-button))
+    (swap! current-mode #(mod (inc %) 4))
+    (change-mode mode-value)))
+
+(defn good-move-range? [x]
+  (if (and (< 0 x)
+             (< x 255))
+    :good
+    (do
+      (println "bad move range: " x)
+      false)))
+
+
+(defn move [rv rh lv lh]
+  "generic move with left and right joystick values must be in a range from 1 - 254"
+  (when (and (good-move-range? rv) (good-move-range? rh)
+             (good-move-range? lv) (good-move-range? lh))
+    (add-command (build-packet rv rh lv lh 0))))
+
 (defn walk-forward [speed]
   "walk forward speed between 1-100"
   (add-command (build-packet CENTER CENTER (up speed) CENTER 0)))
@@ -115,12 +144,12 @@
 (defn good-bye []
   (serial/close port))
 
-(def talk-on (atom false))
+(def talk-on? (atom false))
 (def robot-agent (agent []))
 
 (defn start-communicator []
   (send robot-agent (fn [_]
-                      (while @talk-on
+                      (while @talk-on?
                         (send-command-from-queue)
                         (Thread/sleep 300)))))
 
@@ -136,14 +165,35 @@
   (def port (serial/open "/dev/tty.usbserial-A60205ME" 38400))
 
 
-  (reset! talk-on true)
+  (reset! talk-on? true)
   (start-communicator)
-  (reset! talk-on false)
-  
+
 
 
   (sit-up)
-  (walk-forward 20)
+  (change-mode :translate-mode)
+  (map #(move % CENTER CENTER CENTER) (range 1 254 20))
+  
+  (map #(move % CENTER CENTER CENTER) (range 1 254 60))
+
+  (map #(move CENTER % CENTER CENTER) (range 1 254 20))
+
+  (map #(move CENTER CENTER % CENTER) (range 1 254 20))
+
+  (map #(move CENTER CENTER CENTER %) (range 1 254 20))
+  
+  (map #(move %1 %2 CENTER CENTER) (range 1 254 50) (range 1 254 50))
+
+  (map #(move %1 CENTER %2 CENTER) (range 1 254 10) (range 1 254 10))
+  (map #(move %1 CENTER CENTER %2) (range 1 254 10) (range 1 254 10))
+
+  (reset! talk-on? false)
+
+
+  (change-mode :rotate-mode)
+  @current-mode
+  
+  (repeat 5  (walk-forward 20))
   @talk-on
   @command-queue
   (reset! talk-on false)
